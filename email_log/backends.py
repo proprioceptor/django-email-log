@@ -1,9 +1,11 @@
+import re
+
 from django.core.mail import get_connection
 from django.core.mail.backends.base import BaseEmailBackend
 
 from .conf import settings
 from .models import Email
-
+searchString = 'ALERT'
 
 class EmailBackend(BaseEmailBackend):
 
@@ -17,12 +19,16 @@ class EmailBackend(BaseEmailBackend):
         num_sent = 0
         for message in email_messages:
             recipients = '; '.join(message.to)
-            email = Email.objects.create(
-                from_email=message.from_email,
-                recipients=recipients,
-                subject=message.subject,
-                body=message.body,
-            )
+            if re.search(searchString, message.subject, flags=0):
+                #log outgoing messages only for matched string
+                email = Email.objects.create(
+                    from_email=message.from_email,
+                    recipients=recipients,
+                    subject=message.subject,
+                    body=message.body,
+                )
+            else:
+                pass
             message.connection = self.connection
             num_sent += message.send()
             if num_sent > 0:
