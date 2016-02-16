@@ -31,7 +31,8 @@ class EmailBackend(BaseEmailBackend):
                 pass
             message.connection = self.connection
             num_sent += message.send()
-            if num_sent > 0:
+            if num_sent > 0 and re.search(searchString, message.subject, flags=0):
+                #log outgoing messages only for matched string
                 email.ok = True
                 email.save()
         return num_sent
